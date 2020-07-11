@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='brewDebug',
     version='0.1.0',
-    url='',
+    url='https://github.com/TurtleP/brewDebug',
     author='TurtleP',
     license='MIT',
     description="Parses Atmosphère & Luma3DS Exceptions",

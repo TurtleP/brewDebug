@@ -1,33 +1,17 @@
-__author__ = "TurtleP"
-__copyright__ = f"Copyright (c) 2020 {__author__}"
-__license__ = "MIT"
-__version__ = "0.1.0"
-
-
-import argparse
+from argparse import ArgumentParser
 
 import magic
-
-from .data.n3ds import N3DS
-from .data.switch import Switch
+from brewDebug import __description__, __version__
 
 
 def get_console(file, args):
-    data = magic.from_file(file)
-    tmp_cls = N3DS
+    bin_type = magic.from_file(file)
 
-    if "aarch64" in data:
-        tmp_cls = Switch
-
-    return tmp_cls(args.elf, pc=args.pc, lr=args.lr, log_path=args.log)
+    return bin_type
 
 
 def main(args=None):
-    DESCRIPTION = "Debugging utility for libctru and libnx homebrew ELF " \
-                  "binaries."
-
-    parser = argparse.ArgumentParser(prog="brewDebug",
-                                     description=DESCRIPTION)
+    parser = ArgumentParser(prog="brewDebug", description=__description__)
 
     parser.add_argument("elf", type=str, help="ELF binary")
 
@@ -45,8 +29,10 @@ def main(args=None):
 
     args = parser.parse_args()
 
-    # get the console we want and debug it
-    get_console(args.elf, args).run_debug()
+    if args.log and (args.pc or args.lr):
+        return print("error: cannot use 'log' with 'pc' or 'lr'")
+
+    get_console(args.elf, args)
 
 
 if __name__ == "__main__":
