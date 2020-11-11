@@ -20,9 +20,10 @@ If there are issues, please report them to the GitHub repository:
 https://github.com/TurtleP/brewDebug
 """
 
+
 def debug_console(file, args):
-    if not file:
-        return print(f"ELF binary does not exist: {file}!")
+    if not file or not Path(file).exists():
+        return print(f"error: ELF binary does not exist: {file}!")
 
     bin_type = magic.from_file(file)
 
@@ -42,12 +43,17 @@ def main(args=None):
 
     parser.add_argument("elf", type=str, help="ELF binary")
 
-    parser.add_argument("--pc", type=str, help="The Program Counter value",
-                        default=None)
+    # REGISTRY GROUP
 
-    parser.add_argument("--lr", type=str, help="The Link Register value",
-                        default=None)
+    reg = parser.add_argument_group("exception registers")
 
+    reg.add_argument("--pc", type=str, help="The Program Counter value",
+                     default=None)
+
+    reg.add_argument("--lr", type=str, help="The Link Register value",
+                     default=None)
+
+    # LOG GROUP
     parser.add_argument("--log", type=str, help="The Log file dump.",
                         default=None)
 
