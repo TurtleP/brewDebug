@@ -1,33 +1,44 @@
-__author__ = "TurtleP"
-__copyright__ = f"Copyright (c) 2020 {__author__}"
-__license__ = "MIT"
-__version__ = "0.1.0"
+#!/usr/bin/python3
 
-
-import argparse
+import os
+from argparse import ArgumentParser
+from pathlib import Path
 
 import magic
 
-from .data.n3ds import N3DS
-from .data.switch import Switch
+from brewDebug import __description__, __version__
 
+from .classes.ctr import CTR
+from .classes.hac import HAC
 
-def get_console(file, args):
-    data = magic.from_file(file)
-    tmp_cls = N3DS
+FIRST_RUN_PATH = Path().home() / ".config/brewDebug/.first_run"
+FIRST_RUN_PATH.parent.mkdir(exist_ok=True)
 
-    if "aarch64" in data:
-        tmp_cls = Switch
+FIRST_RUN_DIALOG = """
+This software is not endorsed nor maintained by devkitPro.
+If there are issues, please report them to the GitHub repository:
+https://github.com/TurtleP/brewDebug
+"""
 
-    return tmp_cls(args.elf, pc=args.pc, lr=args.lr, log_path=args.log)
+def debug_console(file, args):
+    if not file:
+        return print(f"ELF binary does not exist: {file}!")
+
+    bin_type = magic.from_file(file)
+
+    HAC(args) if "aarch64" in bin_type else CTR(args)
 
 
 def main(args=None):
-    DESCRIPTION = "Debugging utility for libctru and libnx homebrew ELF " \
-                  "binaries."
+    if not FIRST_RUN_PATH.exists():
+        print(FIRST_RUN_DIALOG)
+        FIRST_RUN_PATH.touch()
+        return
 
-    parser = argparse.ArgumentParser(prog="brewDebug",
-                                     description=DESCRIPTION)
+    if not os.getenv("DEVKITARM") or not os.getenv("DEVKITPRO"):
+        return print("critical: devkitPro's software tools not installed. exiting.")
+
+    parser = ArgumentParser(prog="brewDebug", description=__description__)
 
     parser.add_argument("elf", type=str, help="ELF binary")
 
@@ -45,8 +56,10 @@ def main(args=None):
 
     args = parser.parse_args()
 
-    # get the console we want and debug it
-    get_console(args.elf, args).run_debug()
+    if args.log and (args.pc or args.lr):
+        return print("error: cannot use argument 'log' with 'pc' or 'lr'")
+
+    debug_console(args.elf, args)
 
 
 if __name__ == "__main__":
