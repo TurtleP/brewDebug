@@ -26,6 +26,6 @@ class CTR(Console):
             return print("error: luma3ds exception parser not installed.")
 
         try:
-            subprocess.run(f"luma3ds_exception_dump_parser {log}", shell=True)
+            subprocess.run(f"{self.log_parser} {log}", shell=True)
         except Exception as exception:
             print(exception)
