@@ -5,13 +5,17 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import magic
+import toml
 
 from brewDebug import __description__, __version__
 
 from .classes.ctr import CTR
 from .classes.hac import HAC
+from .config import Config
 
-FIRST_RUN_PATH = Path().home() / ".config/brewDebug/.first_run"
+CONFIG_DIRECTORY = Path().home() / ".config/brewDebug"
+
+FIRST_RUN_PATH = CONFIG_DIRECTORY / ".first_run"
 FIRST_RUN_PATH.parent.mkdir(exist_ok=True)
 
 FIRST_RUN_DIALOG = """
@@ -20,14 +24,36 @@ If there are issues, please report them to the GitHub repository:
 https://github.com/TurtleP/brewDebug
 """
 
+CONFIG = None
+
+
+def parse_config():
+    global CONFIG
+
+    if not (CONFIG_DIRECTORY / "config.toml").exists():
+        return False
+
+    with open(CONFIG_DIRECTORY / "config.toml", "r") as file:
+        CONFIG = Config(toml.load(file))
+
+    return True
+
 
 def debug_console(file, args):
-    if not file or not Path(file).exists():
-        return print(f"error: ELF binary does not exist: {file}!")
+    path = file
 
-    bin_type = magic.from_file(file)
+    if Path(file).suffix == ".elf":
+        if not file or not Path(file).exists():
+            return print(f"error: ELF binary does not exist: {file}!")
+    else:
+        path = CONFIG.get(file)
 
-    HAC(args) if "aarch64" in bin_type else CTR(args)
+    try:
+        bin_type = magic.from_file(path)
+
+        HAC(args) if "aarch64" in bin_type else CTR(args)
+    except Exception as exception:
+        print(exception)
 
 
 def main(args=None):
@@ -39,9 +65,13 @@ def main(args=None):
     if not os.getenv("DEVKITARM") or not os.getenv("DEVKITPRO"):
         return print("critical: devkitPro's software tools not installed. exiting.")
 
+    # get config data if it exists
     parser = ArgumentParser(prog="brewDebug", description=__description__)
 
-    parser.add_argument("elf", type=str, help="ELF binary")
+    if not parse_config():
+        parser.add_argument("elf",     type=str, help="ELF binary")
+    else:
+        parser.add_argument("console", type=str, help="console to debug")
 
     # REGISTRY GROUP
 
@@ -65,7 +95,14 @@ def main(args=None):
     if args.log and (args.pc or args.lr):
         return print("error: cannot use argument 'log' with 'pc' or 'lr'")
 
-    debug_console(args.elf, args)
+    path = None
+
+    if hasattr(args, "elf"):
+        path = args.elf
+    else:
+        path = args.console
+
+    debug_console(path, args)
 
 
 if __name__ == "__main__":
