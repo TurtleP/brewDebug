@@ -7,8 +7,8 @@ from .console import Console
 
 class HAC(Console):
 
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(self, filepath, args):
+        super().__init__(filepath)
 
         self.command   = Path(os.environ["DEVKITPRO"]) / "devkitA64/bin/aarch64-none-elf-addr2line"
         self.arguments = "-aipfCe"

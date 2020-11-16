@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -33,25 +34,36 @@ def parse_config():
     if not (CONFIG_DIRECTORY / "config.toml").exists():
         return False
 
-    with open(CONFIG_DIRECTORY / "config.toml", "r") as file:
-        CONFIG = Config(toml.load(file))
+    try:
+        with open(CONFIG_DIRECTORY / "config.toml", "r") as file:
+            CONFIG = Config(toml.load(file))
+    except Exception as exception:
+        print(exception)
+        sys.exit(-1)
 
     return True
 
 
 def debug_console(file, args):
-    path = file
-
-    if Path(file).suffix == ".elf":
+    if hasattr(args, "elf"):
         if not file or not Path(file).exists():
             return print(f"error: ELF binary does not exist: {file}!")
     else:
-        path = CONFIG.get(file)
+        # Check if we are using a specific app from the config
+        # return the path based on the console and app
+        if hasattr(args, "app"):
+            file = CONFIG.get_entry(args.app, args.console)
+        else:
+            # internally calls get_entry with the first entry
+            file = CONFIG.get(args.console)
+
+    filepath = Path(file).expanduser()
 
     try:
-        bin_type = magic.from_file(path)
+        bin_type = magic.from_file(str(filepath))
+        cls_args = [filepath, args]
 
-        HAC(args) if "aarch64" in bin_type else CTR(args)
+        HAC(*cls_args) if "aarch64" in bin_type else CTR(*cls_args)
     except Exception as exception:
         print(exception)
 
@@ -66,15 +78,21 @@ def main(args=None):
         return print("critical: devkitPro's software tools not installed. exiting.")
 
     # get config data if it exists
-    parser = ArgumentParser(prog="brewDebug", description=__description__)
+    parser = ArgumentParser(
+        prog="brewDebug", description=__description__, allow_abbrev=True)
 
     if not parse_config():
         parser.add_argument("elf",     type=str, help="ELF binary")
     else:
+        # if a config exists, check if there's more than one entry
+        # when there is, add the app argument
+        if CONFIG.get_len() > 1:
+            parser.add_argument(
+                "--app", "-a", type=str, help="app to debug, defaults to the first item in the config", default=CONFIG.get_first())
+
         parser.add_argument("console", type=str, help="console to debug")
 
     # REGISTRY GROUP
-
     reg = parser.add_argument_group("exception registers")
 
     reg.add_argument("--pc", type=str, help="The Program Counter value",
@@ -83,10 +101,11 @@ def main(args=None):
     reg.add_argument("--lr", type=str, help="The Link Register value",
                      default=None)
 
-    # LOG GROUP
+    # LOG
     parser.add_argument("--log", type=str, help="The Log file dump.",
                         default=None)
 
+    # VERSION
     parser.add_argument("--version", "-v", action="version",
                         version=f"%(prog)s {__version__}")
 

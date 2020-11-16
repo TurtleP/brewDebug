@@ -8,8 +8,8 @@ from .console import Console
 
 class CTR(Console):
 
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(self, filepath, args):
+        super().__init__(filepath)
 
         self.command   = Path(os.environ["DEVKITARM"]) / "bin/arm-none-eabi-addr2line"
         self.arguments = "-aipfCe arm -e"
