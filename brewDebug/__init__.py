@@ -1,5 +1,5 @@
 __author__ = "TurtleP"
 __copyright__ = f"Copyright (c) 2020 {__author__}"
 __license__ = "MIT"
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 __description__ = "Debugging utility for libctru and libnx homebrew ELF binaries."
