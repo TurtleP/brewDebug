@@ -21,7 +21,9 @@ ctr = "path/to/app.elf"
 ## Usage
 
 If a config file is present, it will instead ask for a `console` (hac or ctr) instead of `elf` path.
+
 When there is more than one App entry inside the config, the `--app` optional argument is added.
+
 This argument will default to the first entry in the config file unless specified.
 
 ```
