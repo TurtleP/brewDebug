@@ -8,10 +8,21 @@ Atmosphère &amp; Luma3DS Exceptions Parser
 ## Installation
 pip install -U git+https://github.com/TurtleP/brewDebug.git
 
+## Config File
+
+The config file is optional and can be created at `{HOME}/.config/brewDebug/config.toml`.
+
+```toml
+hac = "path/to/app.elf"
+ctr = "path/to/app.elf"
+```
 
 ## Usage
+
+If a config file is present, it will instead ask for a `console` (hac or ctr) instead of `elf` path.
+
 ```
-brewDebug [-h] [--pc PC] [--lr LR] [--log LOG] [--version] elf
+usage: brewDebug [-h] [--pc PC] [--lr LR] [--log LOG] [--version] elf
 
 Debugging utility for libctru and libnx homebrew ELF binaries.
 
@@ -20,10 +31,13 @@ positional arguments:
 
 optional arguments:
   -h, --help     show this help message and exit
-  --pc PC        The Program Counter value
-  --lr LR        The Link Register value
   --log LOG      The Log file dump.
   --version, -v  show program's version number and exit
+
+exception registers:
+  --pc PC        The Program Counter value
+  --lr LR        The Link Register value
 ```
+
 
 NOTE: `--log` cannot be used with the `--lr` or `--pc` arguments.
