@@ -1,6 +1,7 @@
 import console
 export console
 
+import strformat
 import os
 
 import config
@@ -15,6 +16,8 @@ proc parseLog(): seq[string] =
 
 proc runDebug*(self: CTR) =
     var results: bool
+
+    echo(fmt("[Debugging Results for {conf.getBinaryName()}]\n"))
 
     if conf.hasLog():
         let values = parseLog()

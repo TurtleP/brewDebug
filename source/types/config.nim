@@ -44,18 +44,23 @@ proc loadCommon(config: var Config, elf_path: string) =
     config.elf_path = expandTilde(normalizedPath(elf_path))
     config.bin_type = config.getBinaryType()
 
+proc convertAddresses*(config : var Config, pc, lr : string) : tuple[pc, lr : string] =
+    var addrs = (pc: parseHexInt(pc), lr: parseHexInt(lr))
+
+    if (config.bin_type == BinaryType.AARCH64):
+        addrs.pc -= 0x8
+
+    return (pc: toHex(addrs.pc), lr: toHex(addrs.lr))
+
 proc loadLog*(config: var Config, elf_path, log_path: string) =
     config.loadCommon(elf_path)
 
     config.log_path = log_path
 
-proc loadAddress*(config: var Config, elf_path: string, addresses: var tuple) =
+proc loadAddress*(config: var Config, elf_path: string, addresses: tuple) =
     config.loadCommon(elf_path)
 
-    if (config.bin_type == BinaryType.AARCH64):
-        addresses.pc -= 0x8
-
-    config.addresses = (pc: toHex(addresses.pc), lr: toHex(addresses.lr))
+    config.addresses = config.convertAddresses(addresses.pc, addresses.lr)
 
 proc getAddresses*(config: Config): tuple =
     return config.addresses
@@ -64,7 +69,9 @@ proc hasLog*(config: Config): bool =
     return config.log_path.fileExists()
 
 proc getLogContent*(config: Config): string =
-    return config.log_path.readFile()
+    let buffer = config.log_path.readFile()
+
+    return buffer
 
 proc getType*(config: Config): BinaryType =
     return config.bin_type

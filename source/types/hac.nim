@@ -2,35 +2,49 @@ import console
 export console
 
 import os
-import re
+import nre
 import strformat
 
 import config
 
 type HAC* = ref object of ConsoleBase
 
-proc getCommandPath(self: HAC): string = getEnv("DEVKITPRO") & "/devkitA64/bin"
-proc getCommand*(self: HAC): string = self.getCommandPath() & "/aarch64-none-elf-addr2line -aipfCe"
+proc getCommandPath(self: HAC): string = getEnv("DEVKITPRO") & "/devkitA64/bin/"
+proc getCommand*(self: HAC): string = self.getCommandPath() & "aarch64-none-elf-addr2line -aipfCe"
 
-proc parseLog(): seq[string] =
+proc parseLog(): seq[tuple[pc, lr : string]] =
     let buffer = conf.getLogContent()
 
     let addressSearch = re(r"(0x[0-9a-fA-F]+)")
 
     let name = conf.getBinaryName()
-    let registerSearch = re(fmt("PC.*|LR.*{name}.+"))
+    let registerSearch = re(fmt("PC.*{name}.+|LR.*{name}.+"))
 
     let found = findAll(buffer, registerSearch)
 
     if len(found) == 0:
-        return @[""]
+        return @[(pc: "", lr: "")]
 
-    echo found
+    var results : seq[tuple[pc, lr : string]]
+    for index in countup(0, len(found) - 1, 2):
+        let lr = find(found[index], addressSearch).get().match()
+        let pc = find(found[index + 1], addressSearch).get().match()
+
+        let values = conf.convertAddresses(pc, lr)
+
+        results.add(values)
+
+    return results
 
 proc runDebug*(self: HAC) =
     var results: bool
 
+    echo(fmt("[Debugging Results for {conf.getBinaryName()}]\n"))
+
     if conf.hasLog():
-        let items = parseLog()
+        let addresses = parseLog()
+
+        for addrPair in addresses:
+            results = addr2line(self.getCommand(), @[addrPair])
     else:
         results = addr2line(self.getCommand(), @[conf.getAddresses()])

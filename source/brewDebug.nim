@@ -98,9 +98,7 @@ proc addresses(elf_path: string, pc, lr: string) =
         return
 
     let path = pathFromConfigFile(elf_path)
-
-    var addresses = (pc: parseHexInt(pc), lr: parseHexInt(lr))
-    conf.loadAddress(path, addresses)
+    conf.loadAddress(path, (pc: pc, lr: lr))
 
     execute()
 

@@ -15,15 +15,12 @@ proc addr2line*(command: string, addresses: seq[tuple]): bool =
         var results: seq[string]
 
         for address in addresses:
-            let output = execCmdEx(fmt("{command} {conf.getBinaryPath()} {address.pc} {address.lr}"))
-            results.add(output.output)
-
-        echo(fmt("[Debugging Results for {conf.getBinaryName()}]\n"))
+            let res = execCmdEx(fmt("{command} {conf.getBinaryPath()} {address.pc} {address.lr}"))
+            results.add(res.output)
 
         for output in results:
             echo(output)
     except Exception as e:
-        echo(e.msg)
         return false
 
     return true
