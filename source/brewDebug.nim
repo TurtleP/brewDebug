@@ -1,14 +1,15 @@
-import strutils
+import sequtils
 import strformat
+import strutils
+
+import os
 
 import types/config
 
-import cligen
-
-import types/hac
 import types/ctr
+import types/hac
 
-import os
+import cligen
 import parsetoml
 
 let CONFIG_FILE_DIR = expandTilde(normalizedPath(getConfigDir() &
@@ -44,6 +45,7 @@ proc execute() =
     let fileType = conf.getType()
 
     if fileType == BinaryType.INVALID:
+        echo("Invalid ELF binary was found. Check your path and try again.")
         return
 
     case fileType:
@@ -53,6 +55,25 @@ proc execute() =
             CTR.loadConsoleChild()
 
     console.runDebug()
+
+proc findEnvVar(name: string): bool =
+    if not existsEnv(name):
+        echo(fmt("Could not find environment variable {name}. Make sure it's in your PATH!"))
+        return false
+
+    return true
+
+proc findBinary(name: string): bool =
+    if findExe(name).isEmptyOrWhitespace():
+        var package = "devkitARM"
+
+        if "aarch64" in name:
+            package = "devkitA64"
+
+        echo(fmt("Could not find executable {name}. Please install {package} from devkitpro-pacman."))
+        return false
+
+    return true
 
 proc log(elf_path, log_path: string): Console =
     ## Read from a log file
@@ -64,6 +85,17 @@ proc log(elf_path, log_path: string): Console =
 
 proc addresses(elf_path: string, pc, lr: string) =
     ## Debug from PC and LR
+
+    # Check 3DS and Switch needed environment variables
+    let envs = @["DEVKITARM", "DEVKITPRO"]
+
+    if envs.anyIt(it.findEnvVar):
+        let bins = @["arm-none-eabi-addr2line", "aarch64-none-elf-addr2line"]
+
+        if not bins.anyIt(it.findBinary):
+            return
+    else:
+        return
 
     let path = pathFromConfigFile(elf_path)
 
