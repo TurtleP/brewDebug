@@ -44,7 +44,7 @@ proc loadCommon(config: var Config, elf_path: string) =
     config.elf_path = expandTilde(normalizedPath(elf_path))
     config.bin_type = config.getBinaryType()
 
-proc convertAddresses*(config : var Config, pc, lr : string) : tuple[pc, lr : string] =
+proc convertAddresses*(config: var Config, pc, lr: string): tuple[pc, lr: string] =
     var addrs = (pc: parseHexInt(pc), lr: parseHexInt(lr))
 
     if (config.bin_type == BinaryType.AARCH64):

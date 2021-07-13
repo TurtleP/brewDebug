@@ -10,7 +10,6 @@ iface *Console:
     proc runDebug()
 
 proc addr2line*(command: string, addresses: seq[tuple]): bool =
-
     try:
         var results: seq[string]
 
@@ -20,7 +19,7 @@ proc addr2line*(command: string, addresses: seq[tuple]): bool =
 
         for output in results:
             echo(output)
-    except Exception as e:
+    except Exception:
         return false
 
     return true
