@@ -44,4 +44,4 @@ For example, take this config structure:
 Switch = "~/GitHub/lovepotion/platform/switch/LOVEPotion.elf"
 ```
 
-When asking for the elf_path, simply provide the `Table:Key` pair for this document. This example would be `LOVEPotion:3DS` or `LOVEPotion: Switch` . The colon ( `:` ) delimeter is the only one supported.
+When asking for the elf_path, simply provide the `Table:Key` pair for this document. This example would be `LOVEPotion:3DS` or `LOVEPotion:Switch` . The colon ( `:` ) delimeter is the only one supported.
