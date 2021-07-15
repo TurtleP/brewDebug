@@ -22,12 +22,13 @@ where {SUBCMD} is one of:
   help       print comprehensive or per-cmd help
   log        Read from a log file
   addresses  Debug from PC and LR
-  version    Print version information and exit
+  backtrace  Debug from fatal "Backtrace - Start Address", Nintendo Switch only
 
 brewDebug {-h|--help} or with no args at all prints this message.
 brewDebug --help-syntax gives general cligen syntax help.
 Run "brewDebug {help SUBCMD|SUBCMD --help}" to see help for just SUBCMD.
 Run "brewDebug help" to get *comprehensive* help.
+Top-level --version also available
 ```
 
 Alternatively, instead of providing a full path to the ELF binary, one can create a `config.toml` file under the `config` directory for their OS:
