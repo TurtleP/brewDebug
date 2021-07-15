@@ -4,6 +4,7 @@ export console
 import os
 import nre
 import strformat
+import strutils
 
 import config
 
@@ -40,14 +41,16 @@ proc parseLog(): seq[tuple[pc, lr: string]] =
     return results
 
 proc runDebug*(self: HAC) =
-    var results: bool
-
-    echo(fmt("[Debugging Results for {conf.getBinaryName()}]\n"))
+    echo(fmt("[{getHeader()}]\n"))
 
     if conf.hasLog():
         let addresses = parseLog()
 
         for addrPair in addresses:
-            results = addr2line(self.getCommand(), @[addrPair])
+            addr2line(self.getCommand(), @[addrPair])
+    elif conf.hasBacktrace():
+        addr2line(self.getCommand(), conf.getBacktrace())
     else:
-        results = addr2line(self.getCommand(), @[conf.getAddresses()])
+        addr2line(self.getCommand(), @[conf.getAddresses()])
+
+    echo("[" & repeat("=", len(getHeader())) & "]")

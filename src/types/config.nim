@@ -12,6 +12,7 @@ type
     Config* = object
         addresses: tuple[pc: string, lr: string]
         log_path: string
+        backtrace: string
 
         elf_path: string
         bin_type: BinaryType
@@ -62,16 +63,30 @@ proc loadAddress*(config: var Config, elf_path: string, addresses: tuple) =
 
     config.addresses = config.convertAddresses(addresses.pc, addresses.lr)
 
+proc loadBacktrace*(config : var Config, elf_path, backtrace: string) =
+    config.loadCommon(elf_path)
+
+    config.backtrace = backtrace
+
 proc getAddresses*(config: Config): tuple =
     return config.addresses
 
-proc hasLog*(config: Config): bool =
-    return config.log_path.fileExists()
+proc getBacktrace*(config: Config): string =
+    return config.backtrace
+
+proc getLogPath*(config: Config): string =
+    return config.log_path
 
 proc getLogContent*(config: Config): string =
     let buffer = config.log_path.readFile()
 
     return buffer
+
+proc hasLog*(config: Config): bool =
+    return config.log_path.fileExists()
+
+proc hasBacktrace*(config: Config): bool =
+    return config.backtrace.isEmptyOrWhitespace() == false
 
 proc getType*(config: Config): BinaryType =
     return config.bin_type
